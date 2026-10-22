@@ -52,7 +52,12 @@ Host 半读**会话日志**（`session.deriveMessages()`），只保留 `role ==
 
 ### 安装
 
-本地目录安装：Plugins → 添加 → 选这个目录。市场索引与 npm 发布后可直接填包名。
+已发布到 npm：`dsh-plugin-composer-history`（[npmjs.com](https://www.npmjs.com/package/dsh-plugin-composer-history)），Plugins → 添加 → 填包名即可。
+
+或者加市场索引后一键安装：
+`https://raw.githubusercontent.com/Dogtiti/dsh-plugin-composer-predict/main/market-index.json`
+
+也可以本地目录安装（Plugins → 添加 → 选这个目录）。
 
 ### 开发
 
