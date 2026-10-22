@@ -141,6 +141,7 @@ node --test "test/*.test.mjs"
 | --- | --- |
 | [dsh-plugin-composer-predict](https://github.com/Dogtiti/dsh-plugin-composer-predict) | 预测下一条指令并显示为占位文字，`Tab` 采纳 |
 | **dsh-plugin-composer-history**（本仓库） | 输入框中按 `↑` / `↓` 回填历史消息 |
+| [dsh-plugin-subagent-bridge](https://github.com/Dogtiti/dsh-plugin-subagent-bridge) | 让 Codex 通过本机 MCP 把 DSH 当 subagent 用（spawn / wait / followup），反向也能把任务派给 Codex |
 
 ## 许可
 
