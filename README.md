@@ -1,85 +1,158 @@
 # dsh-plugin-composer-history
 
-DeepSeek Harness 插件：在输入框里按 **↑ / ↓** 像终端一样回溯**本会话发过的消息**，按顺序回填成草稿。
+[![npm](https://img.shields.io/npm/v/dsh-plugin-composer-history?label=npm&color=2f6fed)](https://www.npmjs.com/package/dsh-plugin-composer-history)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![dsh](https://img.shields.io/badge/DSH-%5E0.2.1--0-2f6fed)](https://github.com/deepseek-ai/deepseek-harness)
 
-DeepSeek Harness plugin: shell-style prompt history in the composer. **ArrowUp** walks back through the messages you already sent, **ArrowDown** walks forward and restores your draft at the end.
+**输入框里的终端式历史。** 按 `↑` 从最近一条已发送消息往前翻，按 `↓` 走回来，走到底恢复你原来的草稿。
+
+> 这是我给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 写的输入框插件之一，另一个是 [Composer Prediction](https://github.com/Dogtiti/dsh-plugin-composer-predict)（预测下一条指令，`Tab` 采纳）——见文末[更多插件](#更多插件)。
+
+---
+
+## 效果
+
+输入框为空时按 `↑`，逐条往回填；按 `↓` 往前走。回溯时输入框下方右侧显示位置：
+
+```diff
+  3/19  ← 表示「最新往前的第 3 条」，共 19 条
+
++ ↑  然后再开发一个插件 就是在输入框按上下键 能按顺序回填之前发过的消息
++ ↑  换
++ ↓  换
++ ↓  （回到空草稿）
+```
+
+- 走到最新一条之后继续按 `↓`，恢复你**开始回溯前**的草稿（通常是空的）。
+- 一打字就退出回溯，不会和你的编辑打架。
+
+---
+
+## 安装
+
+**市场索引**（推荐）
 
 ```
-输入框为空时：
-  ↑  帮我建个公开仓库
-  ↑  发 npm
-  ↓  发 npm
-  ↓  （回到空草稿）
+https://raw.githubusercontent.com/Dogtiti/dsh-plugin-composer-predict/main/market-index.json
 ```
 
-## 中文
+设置 → 插件 → 启用实验性市场 bundle → Discover → 添加上面的地址 → 安装 `dsh-plugin-composer-history`。
+这个索引同时列出了我的两个输入框插件。
 
-### 行为
+**npm**
 
-- **↑**：输入框为空时开始回溯，从**最近一条**已发送消息往前翻。每按一次往前一条，到最旧为止。
-- **↓**：往回走。走到比最新一条更新时，恢复你开始回溯前的草稿（通常是空的）。
-- 回溯期间输入框下方右侧会显示 `3/12` 这样的位置计数。
-- 你一旦自己输入、粘贴或用别的快捷键改了草稿，回溯状态立即退出，不会和编辑打架。
+```bash
+npm i dsh-plugin-composer-history
+```
 
-### 不接管的情况
+在 DSH 的 Plugins 页用「添加」填包名即可。
 
-- 输入框里**已经有内容**（或已挂附件）时按 ↑ —— 交给编辑器做光标/选区移动，不改变文本。
-- 光标不在输入框里、或焦点在另一个 composer 里。
-- 组合键带 Alt / Ctrl / Cmd / Shift（例如 Cmd+↑），留给系统和宿主快捷键。
-- 斜杠命令或 `@` 引用菜单已认领输入（`phase !== 'plain'`），方向键属于菜单。
-- 一次性子会话等只读输入框不显示时，自然也不会接管。
+**本地目录 / git**
 
-### 数据来源
+```bash
+git clone https://github.com/Dogtiti/dsh-plugin-composer-history
+# Plugins → 添加 → 选这个目录
+```
 
-Host 半读**会话日志**（`session.deriveMessages()`），只保留 `role === 'user'` 且 `source.kind === 'user'` 的文本消息：
+---
 
-- 跳过运行时注入的内容（系统提示、开发者通知、`<runtime-context>` 这类以 `<` 开头的块）；
-- 相邻重复的相同消息只保留一条；
-- 默认最多 200 条、每条最多 2000 字符（超出保留头尾）。
+## 使用
 
-结果按会话事件序号缓存 30 秒，所以连按 ↑ 不会反复解析日志。
+| 按键 | 行为 |
+| --- | --- |
+| `↑` | 输入框为空时开始回溯，从最近一条往前翻；到最旧一条停住 |
+| `↓` | 往前走；超过最新一条时恢复开始回溯前的草稿 |
 
-### 配置
+以下情况**不接管**，把键还给编辑器或宿主：
 
-`cordis.patch.yml` 的 `config`：
+| 情况 | 行为 |
+| --- | --- |
+| 输入框里已有内容或附件 | `↑` 做光标/选区移动，不替换文本 |
+| 焦点不在这个 composer | 不处理 |
+| 带 Alt / Ctrl / Cmd / Shift | 不处理（留给快捷键） |
+| `/` 或 `@` 菜单已认领输入 | 方向键属于菜单 |
+
+---
+
+## 配置
+
+在插件行的 `config` 里改（未声明的键会被忽略）：
+
+```yaml
+- insert:
+    - id: composer-history
+      name: 'dsh-plugin-composer-history'
+      config:
+        limit: 50
+```
 
 | 键 | 默认 | 含义 |
 | --- | --- | --- |
-| `enabled` | `true` | 总开关 |
+| `enabled` | `true` | 总开关；关掉后路由返回 503，客户端不接管按键 |
 | `limit` | `200` | 保留的历史条数（取最近的） |
-| `maxChars` | `2000` | 单条消息最大字符数 |
+| `maxChars` | `2000` | 单条消息最大字符数（超出保留头尾） |
 | `cacheTtlMs` | `30000` | 同一会话事件序号下的缓存时间 |
 
-### 安装
+---
 
-已发布到 npm：`dsh-plugin-composer-history`（[npmjs.com](https://www.npmjs.com/package/dsh-plugin-composer-history)），Plugins → 添加 → 填包名即可。
+## 工作原理
 
-或者加市场索引后一键安装：
-`https://raw.githubusercontent.com/Dogtiti/dsh-plugin-composer-predict/main/market-index.json`
-
-也可以本地目录安装（Plugins → 添加 → 选这个目录）。
-
-### 开发
-
-```bash
-node --test "test/*.test.mjs"    # 11 项：提取规则、去重、裁剪、缓存、开关、注册形状
+```
+┌──────────────── 浏览器 ────────────────┐        ┌───────────── Host ─────────────┐
+│ conversation.composer.dock             │        │ POST /api/composer.history     │
+│  · 捕获阶段拦截 ↑ / ↓                    │  HTTP  │  · sessions.get(id)            │
+│  · 状态机：index = -1 表示未回溯          │ ─────► │  · session.deriveMessages()    │
+│  · setDraft(items[index])               │ ◄───── │  · 按 source kind 过滤           │
+│  · 计数 3/19，一编辑就退出                │  JSON  │  · 按 seq 缓存 30s             │
+└────────────────────────────────────────┘        └────────────────────────────────┘
 ```
 
-## English
+**历史从哪来？** 会话日志——唯一可信的来源。Host 半只保留 `role: user` 且 `source.kind === 'user'` 的文本。这不是猜内容像不像，而是按来源判定：
 
-### Behavior
+```jsonc
+// 真实会话日志里 user/message 的 source kind
+{ "kind": "user" }             // ← 你打的字，进历史
+{ "kind": "runtime-context" }  // ← 每轮注入的运行时快照，不进历史
+{ "kind": "skill-catalog" }    // ← 技能目录（3.4 万字符那种），不进历史
+{ "kind": "time-context" }     // ← 时间戳提示，不进历史
+{ "kind": "user-approval" }    // ← 审批策略变更通知，不进历史
+```
 
-- **ArrowUp** with an empty composer starts history at the most recent sent message and walks backwards, one prompt per press.
-- **ArrowDown** walks forward; past the newest prompt it restores the draft you had before browsing.
-- While browsing, a small `3/12` counter sits at the right edge of the composer dock.
-- Any other edit (typing, paste, undo) leaves browse mode immediately.
+相邻重复的消息会合并成一条（连发两次「继续」只占一格）。结果按会话事件序号缓存 30 秒，连按 `↑` 不会反复解析日志。
 
-The plugin never takes the key when the composer already has text or attachments, when focus is outside this composer, when a modifier is held, or when the slash/reference menu owns the input.
+**为什么用 `setDraft()` 而不是模拟按键？** 它和手动输入走同一条草稿链路：可撤销、按会话持久化、和宿主的命令/引用芯片逻辑一致。
 
-### Data
+---
 
-The Host half reads the Session log (`session.deriveMessages()`), keeps `role: 'user'` messages whose source is the human, skips injected context blocks, collapses consecutive duplicates, and caps length and count. Answers are cached per Session event sequence for 30 seconds.
+## 兼容性
 
-## License
+- 需要 DSH `^0.2.1-0`（`engines.dsh`）。
+- 依赖 `inputActions.setDraft()` 这个公开的草稿写入动作，不直接改 DOM。
 
-MIT
+---
+
+## 开发
+
+```bash
+node --test "test/*.test.mjs"
+# 11 项：提取顺序、注入内容过滤、相邻去重、limit/裁剪、缓存失效、开关、
+#        槽位注册形状、计数渲染、缺 hooks 时不动
+```
+
+---
+
+## 更多插件
+
+我的 DSH 插件都围绕输入框，一个索引装下全部：
+
+| 插件 | 一句话 |
+| --- | --- |
+| **Composer History**（本仓库） | 按 `↑`/`↓` 按顺序回填本会话发过的消息 |
+| [**Composer Prediction**](https://github.com/Dogtiti/dsh-plugin-composer-predict) | 预测下一条指令，显示成占位文字，`Tab` 采纳 |
+
+共用索引（上面两个都能从这里装）：
+`https://raw.githubusercontent.com/Dogtiti/dsh-plugin-composer-predict/main/market-index.json`
+
+## 许可
+
+MIT © [Dogtiti](https://github.com/Dogtiti)
