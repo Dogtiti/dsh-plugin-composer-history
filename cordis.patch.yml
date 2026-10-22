@@ -1,0 +1,5 @@
+- insert:
+    - id: composer-history
+      name: 'dsh-plugin-composer-history'
+      config:
+        limit: 200

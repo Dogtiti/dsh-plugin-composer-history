@@ -1,0 +1,28 @@
+{
+  "name": "dsh-plugin-composer-history",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shell-style prompt history in the DeepSeek Harness composer: ArrowUp walks back through the messages you already sent, ArrowDown walks forward and restores your draft.",
+  "keywords": ["dsh-plugin", "deepseek", "harness", "composer", "history", "keyboard"],
+  "author": "Dogtiti",
+  "license": "MIT",
+  "homepage": "https://github.com/Dogtiti/dsh-plugin-composer-history#readme",
+  "repository": { "type": "git", "url": "https://github.com/Dogtiti/dsh-plugin-composer-history" },
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg"],
+  "engines": { "dsh": "^0.2.1-0" },
+  "publishConfig": { "access": "public" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-conversation"]
+    }
+  }
+}
